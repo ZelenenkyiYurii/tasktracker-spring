@@ -1,16 +1,15 @@
 package com.zelenenkyi.tasktracker.controller;
 
-import com.zelenenkyi.tasktracker.dto.BoardCreateDto;
+import com.zelenenkyi.tasktracker.dto.request.create.BoardCreateDto;
 import com.zelenenkyi.tasktracker.dto.BoardDto;
+import com.zelenenkyi.tasktracker.dto.request.update.BoardUpdateDto;
 import com.zelenenkyi.tasktracker.mapper.BoardCreateMapper;
 import com.zelenenkyi.tasktracker.mapper.BoardMapper;
-import com.zelenenkyi.tasktracker.mapper.TaskMapper;
 import com.zelenenkyi.tasktracker.model.Board;
 import com.zelenenkyi.tasktracker.model.ERole;
 import com.zelenenkyi.tasktracker.model.UserBoardRole;
 import com.zelenenkyi.tasktracker.service.BoardService;
 import com.zelenenkyi.tasktracker.service.impl.UserBoardServiceImpl;
-import com.zelenenkyi.tasktracker.service.impl.UserServiceImpl;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -64,7 +63,7 @@ public class BoardController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> update(@PathVariable(name = "id") Long id, @RequestBody Board board){
+    public ResponseEntity<?> update(@PathVariable(name = "id") Long id, @RequestBody BoardUpdateDto board){
         final boolean updated= boardService.update(board,id);
 
         return updated

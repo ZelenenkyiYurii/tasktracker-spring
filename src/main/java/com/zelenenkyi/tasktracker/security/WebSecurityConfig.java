@@ -76,7 +76,7 @@ public class WebSecurityConfig { // extends WebSecurityConfigurerAdapter {
         http.authenticationProvider(authenticationProvider());
 
         http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
-        http.addFilterAfter(boardAccessFilter(), authenticationJwtTokenFilter().getClass());
+        //http.addFilterAfter(boardAccessFilter(), authenticationJwtTokenFilter().getClass());
         return http.build();
     }
 }

@@ -20,4 +20,11 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
 
     Integer countByTaskList_Id(Long id);
 
+    List<Task> findByTaskListIdAndPositionBetween(Long id, int i, Integer destinationIndex);
+
+    List<Task> findByTaskList_IdAndPositionGreaterThan(Long id, Integer position);
+
+    List<Task> findByTaskList_IdAndPositionGreaterThanEqual(Long id, Integer position);
+
+    List findByTaskListId(Long taskList_id);
 }

@@ -1,8 +1,9 @@
 package com.zelenenkyi.tasktracker.controller;
 
-import com.zelenenkyi.tasktracker.dto.TaskListCreateDto;
-import com.zelenenkyi.tasktracker.dto.TaskListMessageDto;
-import com.zelenenkyi.tasktracker.dto.TaskMessageDto;
+import com.zelenenkyi.tasktracker.dto.request.create.TaskListCreateDto;
+import com.zelenenkyi.tasktracker.dto.request.update.TaskListUpdateDto;
+import com.zelenenkyi.tasktracker.dto.websocket.TaskListMessageDto;
+import com.zelenenkyi.tasktracker.dto.websocket.TaskListUpdatePositionMessage;
 import com.zelenenkyi.tasktracker.mapper.TaskListCreateMapper;
 import com.zelenenkyi.tasktracker.mapper.TaskListMessageMapper;
 import com.zelenenkyi.tasktracker.model.TaskList;
@@ -29,26 +30,6 @@ public class TaskListController {
     private final SimpMessagingTemplate messagingTemplate;
     private final TaskListMessageMapper taskListMessageMapper;
 
-    //private final UserBoardServiceImpl userBoardService;
-    //private final BoardMapper boardMapper;
-    //private final BoardCreateMapper boardCreateMapper;
-
-//    @GetMapping()
-//    public ResponseEntity<List<BoardDto>> read(@AuthenticationPrincipal UserDetails userDetails){
-//        List<BoardDto> list= boardService.getAllByUser(userDetails.getUsername()).stream().map(boardMapper::toDto).collect(Collectors.toList());
-//
-//        return list!=null && !list.isEmpty()
-//                ? new ResponseEntity<>(list, HttpStatus.OK)
-//                : new ResponseEntity<>(HttpStatus.NOT_FOUND);
-//    }
-//    @GetMapping("/{id}")
-//    public ResponseEntity<BoardDto> read(@PathVariable(name = "id") Long id){
-//        final BoardDto board= boardMapper.toDto(boardService.getById(id));
-//        return board!=null
-//                ? new ResponseEntity<>(board,HttpStatus.OK)
-//                : new ResponseEntity<>(HttpStatus.NOT_FOUND);
-//
-//    }
 
     @PostMapping()
     public ResponseEntity<?> create(@RequestBody TaskListCreateDto taskListCreateDto, @AuthenticationPrincipal UserDetails userDetails){
@@ -67,9 +48,27 @@ public class TaskListController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> update(@PathVariable(name = "id") Long id, @RequestBody TaskList taskList){
+    public ResponseEntity<?> update(@PathVariable(name = "id") Long id, @RequestBody TaskListUpdateDto taskList){
         final boolean updated= taskListService.update(taskList,id);
 
+        return updated
+                ? new ResponseEntity<>(HttpStatus.OK)
+                : new ResponseEntity<>(HttpStatus.NOT_MODIFIED);
+    }
+    @PutMapping("/position/{id}")
+    public ResponseEntity<?> updatePosition(@PathVariable(name = "id") Long id, @RequestBody  TaskListUpdateDto taskListUpdateDto){
+        final boolean updated= taskListService.changePosition(id,taskListUpdateDto.position());
+        if (updated) {
+
+            Long boardIdByTaskListId = taskListService.getBoardIdByTaskListId(id);
+            messagingTemplate.convertAndSend("/topic/board/" + boardIdByTaskListId,
+                    new MessageTemplate<TaskListUpdatePositionMessage>(
+                            ETypeObject.TASK_LIST,
+                            EAction.UPDATE_POSITION,
+                            new TaskListUpdatePositionMessage(
+                                  taskListService.getMapIdPosition(boardIdByTaskListId)
+                            )));
+        }
         return updated
                 ? new ResponseEntity<>(HttpStatus.OK)
                 : new ResponseEntity<>(HttpStatus.NOT_MODIFIED);

@@ -40,4 +40,6 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
 
     @Override
     <S extends Board> S save(S entity);
+
+    Optional<Board> findFirstByTaskLists_Id(Long id);
 }

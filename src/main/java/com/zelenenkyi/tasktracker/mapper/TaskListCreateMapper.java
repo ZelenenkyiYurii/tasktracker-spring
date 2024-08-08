@@ -1,6 +1,6 @@
 package com.zelenenkyi.tasktracker.mapper;
 
-import com.zelenenkyi.tasktracker.dto.TaskListCreateDto;
+import com.zelenenkyi.tasktracker.dto.request.create.TaskListCreateDto;
 import com.zelenenkyi.tasktracker.model.TaskList;
 import org.mapstruct.*;
 

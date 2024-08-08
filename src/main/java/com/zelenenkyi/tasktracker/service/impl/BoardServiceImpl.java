@@ -1,5 +1,6 @@
 package com.zelenenkyi.tasktracker.service.impl;
 
+import com.zelenenkyi.tasktracker.dto.request.update.BoardUpdateDto;
 import com.zelenenkyi.tasktracker.model.Board;
 import com.zelenenkyi.tasktracker.model.User;
 import com.zelenenkyi.tasktracker.repository.BoardRepository;
@@ -8,7 +9,9 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -32,9 +35,14 @@ public class BoardServiceImpl implements BoardService {
     }
 
     @Override
-    public boolean update(Board item, Long id) {
-        boardRepository.updateTitleById(item.getTitle(), id);
-        return true;
+    public boolean update(BoardUpdateDto item, Long id) {
+        Optional<Board> boardOptional=boardRepository.findById(id);
+        if(boardOptional.isPresent()){
+            Board board=boardOptional.get();
+            board.setTitle(item.title());
+            return true;
+        }
+        return false;
     }
 
     @Override
@@ -54,5 +62,7 @@ public class BoardServiceImpl implements BoardService {
 
         return boardRepository.findByUserBoardRoles_User_Username(username);
     }
+
+
 
 }
