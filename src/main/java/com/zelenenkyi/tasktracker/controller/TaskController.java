@@ -4,10 +4,7 @@ import com.zelenenkyi.tasktracker.dto.*;
 import com.zelenenkyi.tasktracker.dto.request.create.TaskCreateDto;
 import com.zelenenkyi.tasktracker.dto.request.update.TaskListUpdateDto;
 import com.zelenenkyi.tasktracker.dto.request.update.TaskUpdateDto;
-import com.zelenenkyi.tasktracker.dto.websocket.TaskChangePositionMessage;
-import com.zelenenkyi.tasktracker.dto.websocket.TaskChangePositionRequest;
-import com.zelenenkyi.tasktracker.dto.websocket.TaskListUpdatePositionMessage;
-import com.zelenenkyi.tasktracker.dto.websocket.TaskMessageDto;
+import com.zelenenkyi.tasktracker.dto.websocket.*;
 import com.zelenenkyi.tasktracker.mapper.TaskCreateMapper;
 import com.zelenenkyi.tasktracker.mapper.TaskMapper;
 import com.zelenenkyi.tasktracker.mapper.TaskMessageMapper;
@@ -84,9 +81,17 @@ public class TaskController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> update(@PathVariable(name = "id") Long id, @RequestBody TaskUpdateDto board) {
-        final boolean updated = taskService.update(board, id);
+    public ResponseEntity<?> update(@PathVariable(name = "id") Long id, @RequestBody TaskUpdateDto task) {
+        final boolean updated = taskService.update(task, id);
+        if(updated){
+            Long boardIdByTaskId = taskService.getBoardIdByTaskId(id);
 
+            messagingTemplate.convertAndSend("/topic/board/" + boardIdByTaskId,
+                    new MessageTemplate<TaskUpdateMessage>(
+                            ETypeObject.TASK,
+                            EAction.UPDATE,
+                            new TaskUpdateMessage(id, task.title(), task.description(),taskService.getById(id).getTaskList().getId())));
+        }
         return updated
                 ? new ResponseEntity<>(HttpStatus.OK)
                 : new ResponseEntity<>(HttpStatus.NOT_MODIFIED);

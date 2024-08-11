@@ -3,6 +3,7 @@ package com.zelenenkyi.tasktracker.controller;
 import com.zelenenkyi.tasktracker.dto.request.create.TaskListCreateDto;
 import com.zelenenkyi.tasktracker.dto.request.update.TaskListUpdateDto;
 import com.zelenenkyi.tasktracker.dto.websocket.TaskListMessageDto;
+import com.zelenenkyi.tasktracker.dto.websocket.TaskListUpdateMessage;
 import com.zelenenkyi.tasktracker.dto.websocket.TaskListUpdatePositionMessage;
 import com.zelenenkyi.tasktracker.mapper.TaskListCreateMapper;
 import com.zelenenkyi.tasktracker.mapper.TaskListMessageMapper;
@@ -50,7 +51,16 @@ public class TaskListController {
     @PutMapping("/{id}")
     public ResponseEntity<?> update(@PathVariable(name = "id") Long id, @RequestBody TaskListUpdateDto taskList){
         final boolean updated= taskListService.update(taskList,id);
-
+        if (updated) {
+            Long boardIdByTaskListId = taskListService.getBoardIdByTaskListId(id);
+            messagingTemplate.convertAndSend("/topic/board/" + boardIdByTaskListId,
+                    new MessageTemplate<TaskListUpdateMessage>(
+                            ETypeObject.TASK_LIST,
+                            EAction.UPDATE,
+                            new TaskListUpdateMessage(
+                                    id,taskList.title()
+                            )));
+        }
         return updated
                 ? new ResponseEntity<>(HttpStatus.OK)
                 : new ResponseEntity<>(HttpStatus.NOT_MODIFIED);
