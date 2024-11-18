@@ -55,11 +55,44 @@ public class TaskServiceImpl implements TaskService {
         return false;
     }
 
+//    @Override
+//    public boolean delete(Long id) {
+//        taskRepository.deleteById(id);
+//        return !taskRepository.existsById(id);
+//    }
     @Override
+    @Transactional
     public boolean delete(Long id) {
-        taskRepository.deleteById(id);
-        return !taskRepository.existsById(id);
+        if (!taskRepository.existsById(id)) {
+            return false;
+        }
+
+        updatePositionsAfterDeletion(id);
+        return true;
     }
+
+    @Transactional
+    public void updatePositionsAfterDeletion(Long taskId) {
+        // Знаходимо завдання, що видаляється
+        Task taskToDelete = taskRepository.findById(taskId)
+                .orElseThrow(() -> new IllegalArgumentException("Task not found with id: " + taskId));
+
+        // Отримуємо список завдань у тому ж TaskList, що й завдання, яке видаляється,
+        // і які мають позицію більшу за позицію видаленого завдання
+        List<Task> tasksToUpdate = taskRepository.findByTaskList_IdAndPositionGreaterThan(
+                taskToDelete.getTaskList().getId(), taskToDelete.getPosition());
+
+        // Зменшуємо позицію кожного із завдань
+        tasksToUpdate.forEach(task -> task.setPosition(task.getPosition() - 1));
+
+        // Зберігаємо оновлені завдання
+        taskRepository.saveAll(tasksToUpdate);
+
+        // Видаляємо завдання
+        taskRepository.delete(taskToDelete);
+    }
+
+
 
     @Override
     public List<Task> getAllByTaskList(TaskList taskList) {

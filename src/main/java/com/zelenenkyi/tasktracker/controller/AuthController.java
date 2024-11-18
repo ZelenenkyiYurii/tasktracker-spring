@@ -59,6 +59,7 @@ public class AuthController {
 
     private final RefreshTokenServiceImpl refreshTokenService;
 
+
     @PostMapping("/signin")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
 
